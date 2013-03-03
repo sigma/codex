@@ -40,16 +40,16 @@ For clarity, we'll use the colon notation to qualify the symbols, but that's
 obviously not what one would observe, as the symbol names don't contain
 that qualification.
 
-  (epack-defpackage test
-    (:use emacs)
-    (:export "plop"))
-
-  (epack-in-package test
-    (defun plop () 42))
+    (epack-defpackage test
+      (:use emacs)
+      (:export "plop"))
+    
+    (epack-in-package test
+      (defun plop () 42))
 
 The defun form will be transformed into:
 
-  (emacs:defun test:plop nil 42)
+    (emacs:defun test:plop nil 42)
 
 That means, the `defun` symbol has been detected as exported by the "emacs"
 package, while `plop` was (probably) not even existing, so that it ends up in
@@ -58,34 +58,34 @@ the "test" one.
 If we didn't have the `(:use emacs)` clause in the package definition, the
 expansion would have been
 
-  (test:defun test:plop nil 42)
+    (test:defun test:plop nil 42)
 
 This allows to easily overload functions in packages (note that when proper
 shadowing is in place, it will actually become useful).
 
 Another example:
 
-  (epack-defpackage test2)
-
-  (epack-in-package test2
-    (emacs:defun plop () 7))
+    (epack-defpackage test2)
+    
+    (epack-in-package test2
+      (emacs:defun plop () 7))
 
 This time, no use of emacs package, so we need to prefix the `defun` symbol to
 refer to it. The defun form is transformed into:
 
-  (emacs:defun test:plop nil 7)
+    (emacs:defun test:plop nil 7)
 
 Finally:
 
-  (epack-defpackage test3
-    (:use test))
-
-  (epack-in-package test3
-    (emacs:+ (plop) (test2:plop)))
+    (epack-defpackage test3
+      (:use test))
+    
+    (epack-in-package test3
+      (emacs:+ (plop) (test2:plop)))
 
 The addition form becomes:
 
-  (emacs:+ (test:plop) (test2:plop))
+    (emacs:+ (test:plop) (test2:plop))
 
 which returns 49 as expected ;)
 
