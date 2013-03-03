@@ -96,6 +96,10 @@ Implementing that kind of logic using a macro has its own cost. Namely, we work
 on something that has already gone through the `read` phase, meaning that all
 referenced symbols are interned in the global obarray anyway. That's unclean.
 
+To be clear, that doesn't mean the symbols in the main obarray have the
+function or value slots of their packages counterparts. It's just that
+they exist, in a (mostly) harmless state.
+
 Debugging code that's using those packages would quickly become a nightmare in
 the absence of proper edebug integration. In particular, the fact that symbols
 are not prefixed makes it very difficult to know what symbol we're
