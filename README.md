@@ -4,10 +4,27 @@ This is just a POC, and is not meant to be actually used in the current state.
 That said, I'm more than happy to discuss how we could make it happen (in
 particular, suggestions and patches welcome)
 
+In short, I certainly plan to keep working on it, but this is not even near an
+alpha release. Consider yourself warned.
+
+ -- Sigma
+
+
 Elisp namespaces
 ================
 
 This is an attempt at namespacing Elisp symbols.
+
+Lack of proper namespaces is a problem in Emacs:
+
+* symbols defined for private reasons (implementation details) are exposed just
+  the same way as the official interface of a module.
+* naming conventions tend to generate lengthy symbols that everybody hates
+
+Judging by the amount of IRC traffic that's generated in #emacs by people
+complaining about the lack of namespaces, just implementing them will probably
+significantly decrease the bandwidth congestion on freenode servers. So... here
+we go.
 
 Contrary to other implementations (like
 https://github.com/skeeto/elisp-fakespace), we don't constrain ourselves to the
@@ -15,9 +32,10 @@ main obarray. We instead try to create the symbols at the right place directly,
 which basically means in the obarray that's associated with each codex.
 
 The core of the implementation is the `in-codex` macro, which rewrites its
-body's symbols to point at the right places.
-In particular, a symbol name of the form "<codex>:<symbol>" will be resolved
-as the symbol "symbol" in codex "codex", which is *not* backward-compatible.
+body's symbols to point at the right places.  In particular, a symbol name of
+the form "<codex>:<symbol>" will be resolved as the symbol "symbol" in codex
+"codex", which is *not* backward-compatible (and there are quite a few
+libraries out there that already use such a scheme).
 
 Why Codex ?
 ===========
@@ -25,8 +43,8 @@ Why Codex ?
 Well, this is modeled after CL packages, but packages are something entirely
 different in Emacs. I thought of "thesaurus" first, but I can't be bothered to
 type this all the time. "lexicon" sounded nice, but this might be confusing
-with all the lexical binding stuff that's happening right now.
-"codex" is short and still refers to a collection of symbols :)
+with all the lexical binding stuff that's happening right now.  "codex" is
+short and still refers to a collection of symbols. Plus, I like the name :)
 
 Existing codices
 ================
@@ -69,7 +87,7 @@ expansion would have been
 
     (test:defun test:plop nil 42)
 
-This allows to easily overload functions in codex (note that when proper
+This allows to easily overload functions in a codex (note that when proper
 shadowing is in place, it will actually become useful).
 
 Another example:
