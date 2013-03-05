@@ -75,7 +75,9 @@
 
 (defun codex-intern (name cod)
   (or (codex-find-symbol name cod)
-      (intern name (codex-struct-symbols cod))))
+      (let ((sym (intern name (codex-struct-symbols cod))))
+        (put sym :codex (codex-struct-name cod))
+        sym)))
 
 (defun codex-resolve-symbol (sym default-codex)
   (let ((name (symbol-name sym)))
