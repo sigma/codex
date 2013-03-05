@@ -102,6 +102,24 @@
                     (t form)))
             forms)))
 
+(defun codex--dump-codex-debug (codname forms)
+  (mapcar (lambda (form)
+            (cond ((null form) nil)
+                  ((symbolp form)
+                   (make-symbol (concat
+                                 (or (get form :codex) "*global*")
+                                 ":"
+                                 (symbol-name form))))
+                  ((listp form)
+                   (codex--dump-codex-debug codname form))
+                  (t form)))
+          (codex-in-codex codname forms)))
+
+(defmacro in-codex--debug (codname &rest body)
+  (declare (indent 1))
+  (cons 'quote
+        (codex--dump-codex-debug codname `,body)))
+
 ;;;###autoload
 (defmacro defcodex (name &rest specs)
   (declare (indent 1))
