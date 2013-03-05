@@ -47,9 +47,11 @@
     (cdr (assoc name codex-structs))))
 
 (defun codex-define (name specs &optional builtin)
-  (let* ((codex (make-codex-struct :name name))
+  (let* ((codex (make-codex-struct))
          (used (cdr (assoc :use specs)))
          (export (cdr (assoc :export specs))))
+    (setf (codex-struct-name codex)
+          name)
     (setf (codex-struct-used codex)
           (mapcar 'codex-string-id used))
     (setf (codex-struct-export codex)
