@@ -31,6 +31,7 @@
   (require 'cl))
 
 (defstruct (codex-struct :named)
+  name
   used
   symbols
   export)
@@ -42,7 +43,7 @@
       (and (symbolp name) (symbol-name name))))
 
 (defun codex-define (name specs)
-  (let* ((codex (make-codex-struct))
+  (let* ((codex (make-codex-struct :name name))
          (used (cdr (assoc :use specs)))
          (export (cdr (assoc :export specs))))
     (setf (codex-struct-used codex)
