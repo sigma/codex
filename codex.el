@@ -42,7 +42,7 @@
   (or (and (stringp name) name)
       (and (symbolp name) (symbol-name name))))
 
-(defun codex-define (name specs)
+(defun codex-define (name specs &optional builtin)
   (let* ((codex (make-codex-struct :name name))
          (used (cdr (assoc :use specs)))
          (export (cdr (assoc :export specs))))
@@ -51,7 +51,7 @@
     (setf (codex-struct-export codex)
           (mapcar 'codex-string-id export))
     (setf (codex-struct-symbols codex)
-          (make-vector 17 nil))
+          (or (and builtin obarray) (make-vector 17 nil)))
     (let ((cod (assoc name codex-structs)))
       (if cod
           (setcdr cod codex)
@@ -131,18 +131,23 @@
 (defmacro in-codex (codname &rest body)
   (declare (indent 1))
   (cons 'progn
+        (codex-in-codex codname body)))
 
-(defmacro codex-initialize ()
-  '(progn
-     ;; initialize the "emacs" codex, with all builtins
-     (let ((emacs (defcodex emacs)))
-       (setf (codex-struct-symbols emacs) obarray)
-       (setf (codex-struct-export emacs)
-             (let ((subrs nil))
-               (mapatoms (lambda (s)
-                           (when (and (fboundp s) (subrp (symbol-function s)))
-                             (setq subrs (cons (symbol-name s) subrs)))))
-               subrs)))))
+(defun codex-initialize ()
+
+  ;; initialize the "codex" codex
+  (codex-define "codex" '((:export "defcodex" "in-codex")) t)
+
+  ;; initialize the "emacs" codex, with all builtins
+  (let ((emacs (codex-define "emacs" nil t)))
+    (setf (codex-struct-export emacs)
+          (let ((subrs nil))
+            (mapatoms (lambda (s)
+                        (when (and (fboundp s) (subrp (symbol-function s)))
+                          (setq subrs (cons (symbol-name s) subrs)))))
+            subrs)))
+
+  t)
 
 (provide 'codex)
 
