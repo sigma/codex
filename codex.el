@@ -117,8 +117,9 @@
 
 (defmacro in-codex--debug (codname &rest body)
   (declare (indent 1))
-  (cons 'quote
-        (codex--dump-codex-debug codname `,body)))
+  (list 'quote
+        (cons 'progn
+              (codex--dump-codex-debug codname body))))
 
 ;;;###autoload
 (defmacro defcodex (name &rest specs)
