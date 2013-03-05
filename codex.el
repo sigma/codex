@@ -42,6 +42,10 @@
   (or (and (stringp name) name)
       (and (symbolp name) (symbol-name name))))
 
+(defun codex-by-name (name)
+  (let ((name (codex-string-id name)))
+    (cdr (assoc name codex-structs))))
+
 (defun codex-define (name specs &optional builtin)
   (let* ((codex (make-codex-struct :name name))
          (used (cdr (assoc :use specs)))
@@ -91,14 +95,13 @@
           (t (codex-intern name default-codex)))))
 
 (defun codex-in-codex (codname forms)
-  (let* ((name (codex-string-id codname))
-         (cod (cdr (assoc name codex-structs))))
+  (let* ((cod (codex-by-name codname)))
     (mapcar (lambda (form)
               (cond ((null form) nil)
                     ((symbolp form)
                      (codex-resolve-symbol form cod))
                     ((listp form)
-                     (codex-in-codex name form))
+                     (codex-in-codex codname form))
                     (t form)))
             forms)))
 
