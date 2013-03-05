@@ -27,137 +27,176 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
 
-(defstruct (codex-struct :named)
-  name
-  used
-  symbols
-  export)
+(let ((codex-obarray (make-vector 19 nil)))
 
-(defvar codex-structs nil)
+  (let ((Smake-struct (intern "make-struct" codex-obarray))
+        (Sstruct-name (intern "struct-name" codex-obarray))
+        (Sstruct-used (intern "struct-used" codex-obarray))
+        (Sstruct-symbols (intern "struct-symbols" codex-obarray))
+        (Sstruct-export (intern "struct-export" codex-obarray))
+        (Sstructs (intern "structs" codex-obarray))
+        (Sstring-id (intern "string-id" codex-obarray))
+        (Sby-name (intern "by-name" codex-obarray))
+        (Sdefine (intern "define" codex-obarray))
+        (Sfind-symbol-deps (intern "find-symbol-deps" codex-obarray))
+        (Sfind-symbol (intern "find-symbol" codex-obarray))
+        (Sintern (intern "intern" codex-obarray))
+        (Sresolve-symbol (intern "resolve-symbol" codex-obarray))
+        (Sin-codex-func (intern "in-codex-func" codex-obarray))
+        (Sdefcodex (intern "defcodex" codex-obarray))
+        (Sin-codex (intern "in-codex" codex-obarray)))
 
-(defun codex-string-id (name)
-  (or (and (stringp name) name)
-      (and (symbolp name) (symbol-name name))))
+    (fset Smake-struct
+          (lambda (name used symbols export)
+            (let ((vec (make-vector 4 nil)))
+              (aset vec 0 name)
+              (aset vec 1 used)
+              (aset vec 2 symbols)
+              (aset vec 3 export)
+              vec)))
 
-(defun codex-by-name (name)
-  (let ((name (codex-string-id name)))
-    (cdr (assoc name codex-structs))))
+    (fset Sstruct-name
+          (lambda (s) (aref s 0)))
 
-(defun codex-define (name specs &optional builtin)
-  (let* ((codex (make-codex-struct))
-         (used (cdr (assoc :use specs)))
-         (export (cdr (assoc :export specs))))
-    (setf (codex-struct-name codex)
-          name)
-    (setf (codex-struct-used codex)
-          (mapcar 'codex-string-id used))
-    (setf (codex-struct-export codex)
-          (mapcar 'codex-string-id export))
-    (setf (codex-struct-symbols codex)
-          (or (and builtin obarray) (make-vector 17 nil)))
-    (let ((cod (assoc name codex-structs)))
-      (if cod
-          (setcdr cod codex)
-        (push (cons name codex) codex-structs))
-      codex)))
+    (fset Sstruct-used
+          (lambda (s) (aref s 1)))
 
-(defun codex-find-symbol--deps (name deps)
-  (and deps
-       (or
-        (let* ((dep (car deps))
-               (cod (cdr (assoc dep codex-structs))))
-          (and cod
-               (member name (codex-struct-export cod))
-               (intern-soft name (codex-struct-symbols cod))))
-        (codex-find-symbol--deps name (cdr deps)))))
+    (fset Sstruct-symbols
+          (lambda (s) (aref s 2)))
 
-(defun codex-find-symbol (name cod)
-  (and cod
-       (or (codex-find-symbol--deps name (codex-struct-used cod))
-           (intern-soft name (codex-struct-symbols cod)))))
+    (fset Sstruct-export
+          (lambda (s) (aref s 3)))
 
-(defun codex-intern (name cod)
-  (or (codex-find-symbol name cod)
-      (let ((sym (intern name (codex-struct-symbols cod))))
-        (put sym :codex (codex-struct-name cod))
-        sym)))
+    ;; variable to hold the set of defined codices
+    (set Sstructs nil)
 
-(defun codex-resolve-symbol (sym default-codex)
-  (let ((name (symbol-name sym)))
-    (cond ((string-match-p "^:.*" name)
-           sym)
-          ((and (string-match "^\\(.*\\):\\(.*\\)" name)
-                (assoc (match-string 1 name) codex-structs)
-                (codex-find-symbol (match-string 2 name)
-                                   (cdr (assoc (match-string 1 name)
-                                               codex-structs)))))
-          (t (codex-intern name default-codex)))))
+    (fset Sstring-id
+          (lambda (name)
+            (or (and (stringp name) name)
+                (and (symbolp name) (symbol-name name)))))
 
-(defun codex-in-codex (codname forms)
-  (let* ((cod (codex-by-name codname)))
-    (mapcar (lambda (form)
-              (cond ((null form) nil)
-                    ((symbolp form)
-                     (codex-resolve-symbol form cod))
-                    ((listp form)
-                     (codex-in-codex codname form))
-                    (t form)))
-            forms)))
+    (fset Sby-name
+          `(lambda (name)
+             (let ((name (,Sstring-id name)))
+               (cdr (assoc name (symbol-value ',Sstructs))))))
 
-(defun codex--dump-codex-debug (codname forms)
-  (mapcar (lambda (form)
-            (cond ((null form) nil)
-                  ((symbolp form)
-                   (make-symbol (concat
-                                 (or (get form :codex) "*global*")
-                                 ":"
-                                 (symbol-name form))))
-                  ((listp form)
-                   (codex--dump-codex-debug codname form))
-                  (t form)))
-          (codex-in-codex codname forms)))
+    (fset Sdefine
+          `(lambda (name specs &optional ob)
+             (let* ((used (cdr (assoc :use specs)))
+                    (export (cdr (assoc :export specs)))
+                    (codex (,Smake-struct
+                            name
+                            (mapcar ',Sstring-id used)
+                            (or (and (eq ob t) obarray)
+                                ob
+                                (make-vector 17 nil))
+                            (mapcar ',Sstring-id export))))
+               (let ((cod (assoc name (symbol-value ',Sstructs))))
+                 (if cod
+                     (setcdr cod codex)
+                   (push (cons name codex) ,Sstructs))
+                 codex))))
 
-(defmacro in-codex--debug (codname &rest body)
-  (declare (indent 1))
-  (list 'quote
-        (cons 'progn
-              (codex--dump-codex-debug codname body))))
+    (fset Sfind-symbol-deps
+          `(lambda (name deps)
+             (and deps
+                  (or
+                   (let* ((dep (car deps))
+                          (cod (cdr (assoc dep (symbol-value ',Sstructs)))))
+                     (and cod
+                          (member name
+                                  (,Sstruct-export cod))
+                          (intern-soft name
+                                       (,Sstruct-symbols cod))))
+                   (,Sfind-symbol-deps name (cdr deps))))))
 
-;;;###autoload
+    (fset Sfind-symbol
+          `(lambda (name cod)
+             (and cod
+                  (or (,Sfind-symbol-deps name
+                                          (,Sstruct-used cod))
+                      (intern-soft name (,Sstruct-symbols cod))))))
+
+    (fset Sintern
+          `(lambda (name cod)
+             (or (,Sfind-symbol name cod)
+                 (let ((sym (intern name (,Sstruct-symbols cod))))
+                   (put sym :codex (,Sstruct-name cod))
+                   sym))))
+
+    (fset Sresolve-symbol
+          `(lambda (sym default-codex)
+             (let ((name (symbol-name sym)))
+               (cond ((string-match-p "^:.*" name)
+                      sym)
+                     ((and (string-match "^\\(.*\\):\\(.*\\)" name)
+                           (assoc (match-string 1 name) (symbol-value ',Sstructs))
+                           (,Sfind-symbol
+                            (match-string 2 name)
+                            (cdr (assoc (match-string 1 name)
+                                        (symbol-value ',Sstructs))))))
+                     (t (,Sintern name default-codex))))))
+
+    (fset Sin-codex-func
+          `(lambda (codname forms)
+             (let* ((cod (,Sby-name codname)))
+               (mapcar (lambda (form)
+                         (cond ((null form) nil)
+                               ((symbolp form)
+                                (,Sresolve-symbol form cod))
+                               ((listp form)
+                                (,Sin-codex-func codname form))
+                               (t form)))
+                       forms))))
+
+    ;; create "codex" codex
+    (funcall Sdefine "codex" '((:export "defcodex" "in-codex"))
+             codex-obarray)
+
+    ;; create "emacs" codex
+    (funcall Sdefine "emacs"
+             (let ((subrs nil))
+               (mapatoms (lambda (s)
+                           (when (and (fboundp s) (subrp (symbol-function s)))
+                             (setq subrs (cons (symbol-name s) subrs)))))
+               subrs)
+             t))
+
+  (put 'codex :obarray codex-obarray))
+
 (defmacro defcodex (name &rest specs)
   (declare (indent 1))
-  (let ((name (codex-string-id name)))
-    `(codex-define ,name ',specs)))
+  (let ((name (funcall (intern "string-id" (get 'codex :obarray)) name)))
+    `(funcall (intern "define" (get 'codex :obarray)) ,name ',specs)))
 
-;;;###autoload
 (defmacro in-codex (codname &rest body)
   (declare (indent 1))
-  `(let ((obarray (codex-struct-symbols ,(codex-by-name codname))))
-     ,@(codex-in-codex codname body)))
+  `(let ((obarray (funcall (intern "struct-symbols" (get 'codex :obarray))
+                           ,(funcall (intern "by-name" (get 'codex :obarray))
+                                     codname))))
+     ,@(funcall (intern "in-codex-func" (get 'codex :obarray)) codname body)))
 
-(defun codex-initialize ()
+;; (defun codex--dump-codex-debug (codname forms)
+;;   (mapcar (lambda (form)
+;;             (cond ((null form) nil)
+;;                   ((symbolp form)
+;;                    (make-symbol (concat
+;;                                  (or (get form :codex) "*global*")
+;;                                  ":"
+;;                                  (symbol-name form))))
+;;                   ((listp form)
+;;                    (codex--dump-codex-debug codname form))
+;;                   (t form)))
+;;           (codex-in-codex codname forms)))
 
-  ;; initialize the "codex" codex
-  (codex-define "codex" '((:export "defcodex" "in-codex")) t)
-
-  ;; initialize the "emacs" codex, with all builtins
-  (let ((emacs (codex-define "emacs" nil t)))
-    (setf (codex-struct-export emacs)
-          (let ((subrs nil))
-            (mapatoms (lambda (s)
-                        (when (and (fboundp s) (subrp (symbol-function s)))
-                          (setq subrs (cons (symbol-name s) subrs)))))
-            subrs)))
-
-  t)
+;; (defmacro in-codex--debug (codname &rest body)
+;;   (declare (indent 1))
+;;   (list 'quote
+;;         (cons 'progn
+;;               (codex--dump-codex-debug codname body))))
 
 (provide 'codex)
-
-(eval-after-load 'codex
-  '(codex-initialize))
 
 ;; (defcodex test
 ;;   (:use emacs)
