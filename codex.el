@@ -131,7 +131,6 @@
 (defmacro in-codex (codname &rest body)
   (declare (indent 1))
   (cons 'progn
-        (codex-in-codex codname `,body)))
 
 (defmacro codex-initialize ()
   '(progn
