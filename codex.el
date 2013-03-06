@@ -111,20 +111,24 @@
   (mapcar (lambda (form)
             (cond ((null form) nil)
                   ((symbolp form)
-                   (make-symbol (concat
-                                 (or (get form :codex) "*global*")
-                                 ":"
-                                 (symbol-name form))))
+                   (let ((sym (make-symbol (concat
+                                            (or (get form :codex) "*global*")
+                                            ":"
+                                            (symbol-name form)))))
+                     (ignore-errors
+                       (fset sym (symbol-function form)))
+                     (ignore-errors
+                       (set sym (symbol-value form)))
+                     sym))
                   ((listp form)
                    (codex--dump-codex-debug codname form))
                   (t form)))
           (codex-in-codex codname forms)))
 
-(defmacro in-codex--debug (codname &rest body)
+(defmacro in-codex-expand (codname &rest body)
   (declare (indent 1))
   (list 'quote
-        (cons 'progn
-              (codex--dump-codex-debug codname body))))
+        (codex--dump-codex-debug codname (cons 'emacs:progn body))))
 
 ;;;###autoload
 (defmacro defcodex (name &rest specs)
