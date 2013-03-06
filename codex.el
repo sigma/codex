@@ -36,7 +36,7 @@
   symbols
   export)
 
-(defvar codex-structs nil)
+(defvar codex-alist nil)
 
 (defun codex-string-id (name)
   (or (and (stringp name) name)
@@ -44,7 +44,7 @@
 
 (defun codex-by-name (name)
   (let ((name (codex-string-id name)))
-    (cdr (assoc name codex-structs))))
+    (cdr (assoc name codex-alist))))
 
 (defun codex-define (name specs &optional builtin)
   (let* ((codex (make-codex-struct))
@@ -58,17 +58,17 @@
           (mapcar 'codex-string-id export))
     (setf (codex-struct-symbols codex)
           (or (and builtin obarray) (make-vector 17 nil)))
-    (let ((cod (assoc name codex-structs)))
+    (let ((cod (assoc name codex-alist)))
       (if cod
           (setcdr cod codex)
-        (push (cons name codex) codex-structs))
+        (push (cons name codex) codex-alist))
       codex)))
 
 (defun codex-find-symbol--deps (name deps)
   (and deps
        (or
         (let* ((dep (car deps))
-               (cod (cdr (assoc dep codex-structs))))
+               (cod (cdr (assoc dep codex-alist))))
           (and cod
                (member name (codex-struct-export cod))
                (intern-soft name (codex-struct-symbols cod))))
@@ -90,10 +90,10 @@
     (cond ((string-match-p "^:.*" name)
            sym)
           ((and (string-match "^\\(.*\\):\\(.*\\)" name)
-                (assoc (match-string 1 name) codex-structs)
+                (assoc (match-string 1 name) codex-alist)
                 (codex-find-symbol (match-string 2 name)
                                    (cdr (assoc (match-string 1 name)
-                                               codex-structs)))))
+                                               codex-alist)))))
           (t (codex-intern name default-codex)))))
 
 (defun codex-in-codex (codname forms)
