@@ -145,7 +145,15 @@
 (defun codex-initialize ()
 
   ;; initialize the "codex" codex
-  (codex-define "codex" '((:export "defcodex" "in-codex")) t)
+  (let ((codex
+         (codex-define "codex" '((:export "defcodex" "in-codex")))))
+    (let* ((ob (codex-struct-symbols codex))
+           (defcodex-sym (intern "defcodex" ob))
+           (in-codex-sym (intern "in-codex" ob)))
+      (fset defcodex-sym 'defcodex)
+      (put defcodex-sym :codex "codex")
+      (fset in-codex-sym 'in-codex)
+      (put in-codex-sym :codex "codex")))
 
   ;; initialize the "emacs" codex, with all builtins
   (let ((emacs (codex-define "emacs" nil t)))
