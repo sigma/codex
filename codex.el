@@ -55,31 +55,39 @@
               (aset vec 2 symbols)
               (aset vec 3 export)
               vec)))
+    (put Smake-struct :codex "codex")
 
     (fset Sstruct-name
           (lambda (s) (aref s 0)))
+    (put Sstruct-name :codex "codex")
 
     (fset Sstruct-used
           (lambda (s) (aref s 1)))
+    (put Sstruct-used :codex "codex")
 
     (fset Sstruct-symbols
           (lambda (s) (aref s 2)))
+    (put Sstruct-symbols :codex "codex")
 
     (fset Sstruct-export
           (lambda (s) (aref s 3)))
+    (put Sstruct-export :codex "codex")
 
     ;; variable to hold the set of defined codices
     (set Sstructs nil)
+    (put Sstructs :codex "codex")
 
     (fset Sstring-id
           (lambda (name)
             (or (and (stringp name) name)
                 (and (symbolp name) (symbol-name name)))))
+    (put Sstring-id :codex "codex")
 
     (fset Sby-name
           `(lambda (name)
              (let ((name (,Sstring-id name)))
-               (cdr (assoc name (symbol-value ',Sstructs))))))
+               (cdr (assoc name ,Sstructs)))))
+    (put Sby-name :codex "codex")
 
     (fset Sdefine
           `(lambda (name specs &optional ob)
@@ -92,24 +100,26 @@
                                 ob
                                 (make-vector 17 nil))
                             (mapcar ',Sstring-id export))))
-               (let ((cod (assoc name (symbol-value ',Sstructs))))
+               (let ((cod (assoc name ,Sstructs)))
                  (if cod
                      (setcdr cod codex)
                    (push (cons name codex) ,Sstructs))
                  codex))))
+    (put Sdefine :codex "codex")
 
     (fset Sfind-symbol-deps
           `(lambda (name deps)
              (and deps
                   (or
                    (let* ((dep (car deps))
-                          (cod (cdr (assoc dep (symbol-value ',Sstructs)))))
+                          (cod (cdr (assoc dep ,Sstructs))))
                      (and cod
                           (member name
                                   (,Sstruct-export cod))
                           (intern-soft name
                                        (,Sstruct-symbols cod))))
                    (,Sfind-symbol-deps name (cdr deps))))))
+    (put Sfind-symbol-deps :codex "codex")
 
     (fset Sfind-symbol
           `(lambda (name cod)
@@ -117,6 +127,7 @@
                   (or (,Sfind-symbol-deps name
                                           (,Sstruct-used cod))
                       (intern-soft name (,Sstruct-symbols cod))))))
+    (put Sfind-symbol :codex "codex")
 
     (fset Sintern
           `(lambda (name cod)
@@ -124,6 +135,7 @@
                  (let ((sym (intern name (,Sstruct-symbols cod))))
                    (put sym :codex (,Sstruct-name cod))
                    sym))))
+    (put Sintern :codex "codex")
 
     (fset Sresolve-symbol
           `(lambda (sym default-codex)
@@ -131,12 +143,13 @@
                (cond ((string-match-p "^:.*" name)
                       sym)
                      ((and (string-match "^\\(.*\\):\\(.*\\)" name)
-                           (assoc (match-string 1 name) (symbol-value ',Sstructs))
+                           (assoc (match-string 1 name) ,Sstructs)
                            (,Sfind-symbol
                             (match-string 2 name)
                             (cdr (assoc (match-string 1 name)
-                                        (symbol-value ',Sstructs))))))
+                                        ,Sstructs)))))
                      (t (,Sintern name default-codex))))))
+    (put Sresolve-symbol :codex "codex")
 
     (fset Sin-codex-func
           `(lambda (codname forms)
@@ -149,6 +162,7 @@
                                 (,Sin-codex-func codname form))
                                (t form)))
                        forms))))
+    (put Sin-codex-func :codex "codex")
 
     ;; create "codex" codex
     (funcall Sdefine "codex" '((:export "defcodex" "in-codex"))
@@ -169,6 +183,7 @@
         `(funcall (intern "define" (get 'codex :obarray)) ,name ',specs)))
 
     (fset Sdefcodex (symbol-function 'defcodex))
+    (put Sdefcodex :codex "codex")
     (fset 'defcodex Sdefcodex)
 
     (defmacro in-codex (codname &rest body)
@@ -179,6 +194,7 @@
          ,@(funcall (intern "in-codex-func" (get 'codex :obarray)) codname body)))
 
     (fset Sin-codex (symbol-function 'in-codex))
+    (put Sin-codex :codex "codex")
     (fset 'in-codex Sin-codex))
 
   (put 'codex :obarray codex-obarray))
