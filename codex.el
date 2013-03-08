@@ -161,21 +161,27 @@
                            (when (and (fboundp s) (subrp (symbol-function s)))
                              (setq subrs (cons (symbol-name s) subrs)))))
                subrs)
-             t))
+             t)
+
+    (defmacro defcodex (name &rest specs)
+      (declare (indent 1))
+      (let ((name (funcall (intern "string-id" (get 'codex :obarray)) name)))
+        `(funcall (intern "define" (get 'codex :obarray)) ,name ',specs)))
+
+    (fset Sdefcodex (symbol-function 'defcodex))
+    (fset 'defcodex Sdefcodex)
+
+    (defmacro in-codex (codname &rest body)
+      (declare (indent 1))
+      `(let ((obarray (funcall (intern "struct-symbols" (get 'codex :obarray))
+                               ,(funcall (intern "by-name" (get 'codex :obarray))
+                                         codname))))
+         ,@(funcall (intern "in-codex-func" (get 'codex :obarray)) codname body)))
+
+    (fset Sin-codex (symbol-function 'in-codex))
+    (fset 'in-codex Sin-codex))
 
   (put 'codex :obarray codex-obarray))
-
-(defmacro defcodex (name &rest specs)
-  (declare (indent 1))
-  (let ((name (funcall (intern "string-id" (get 'codex :obarray)) name)))
-    `(funcall (intern "define" (get 'codex :obarray)) ,name ',specs)))
-
-(defmacro in-codex (codname &rest body)
-  (declare (indent 1))
-  `(let ((obarray (funcall (intern "struct-symbols" (get 'codex :obarray))
-                           ,(funcall (intern "by-name" (get 'codex :obarray))
-                                     codname))))
-     ,@(funcall (intern "in-codex-func" (get 'codex :obarray)) codname body)))
 
 ;; (defun codex--dump-codex-debug (codname forms)
 ;;   (mapcar (lambda (form)
