@@ -170,11 +170,14 @@
 
     ;; create "emacs" codex
     (funcall Sdefine "emacs"
-             (let ((subrs nil))
-               (mapatoms (lambda (s)
-                           (when (and (fboundp s) (subrp (symbol-function s)))
-                             (setq subrs (cons (symbol-name s) subrs)))))
-               subrs)
+             (list
+              (cons :export
+                    (let ((subrs nil))
+                      (mapatoms (lambda (s)
+                                  (when (and (fboundp s)
+                                             (subrp (symbol-function s)))
+                                    (setq subrs (cons (symbol-name s) subrs)))))
+                      subrs)))
              t)
 
     (defmacro defcodex (name &rest specs)
