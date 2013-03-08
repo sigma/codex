@@ -27,7 +27,6 @@
 
 ;;; Code:
 
-
 (let ((codex-obarray (make-vector 19 nil)))
 
   (let ((Smake-struct (intern "make-struct" codex-obarray))
@@ -45,7 +44,9 @@
         (Sresolve-symbol (intern "resolve-symbol" codex-obarray))
         (Sin-codex-func (intern "in-codex-func" codex-obarray))
         (Sdefcodex (intern "defcodex" codex-obarray))
-        (Sin-codex (intern "in-codex" codex-obarray)))
+        (Sin-codex (intern "in-codex" codex-obarray))
+        (Sdump-codex-debug (intern "dump-codex-debug" codex-obarray))
+        (Sin-codex-expand (intern "in-codex-expand" codex-obarray)))
 
     (fset Smake-struct
           (lambda (name used symbols export)
@@ -164,6 +165,26 @@
                        forms))))
     (put Sin-codex-func :codex "codex")
 
+    (fset Sdump-codex-debug
+          `(lambda (codname forms)
+             (mapcar (lambda (form)
+                       (cond ((null form) nil)
+                             ((symbolp form)
+                              (let ((sym (make-symbol
+                                          (concat
+                                           (or (get form :codex) "*global*")
+                                           ":"
+                                           (symbol-name form)))))
+                                (ignore-errors
+                                  (fset sym (symbol-function form)))
+                                (ignore-errors
+                                  (set sym (symbol-value form)))
+                                sym))
+                             ((listp form)
+                              (,Sdump-codex-debug codname form))
+                             (t form)))
+                     (,Sin-codex-func codname forms))))
+
     ;; create "codex" codex
     (funcall Sdefine "codex" '((:export "defcodex" "in-codex"))
              codex-obarray)
@@ -198,28 +219,19 @@
 
     (fset Sin-codex (symbol-function 'in-codex))
     (put Sin-codex :codex "codex")
-    (fset 'in-codex Sin-codex))
+    (fset 'in-codex Sin-codex)
+
+    (defmacro in-codex-expand (codname &rest body)
+      (declare (indent 1))
+      (list 'quote
+            (funcall (intern "dump-codex-debug" (get 'codex :obarray))
+                     codname (cons 'emacs:progn body))))
+
+    (fset Sin-codex-expand (symbol-function 'in-codex-expand))
+    (put Sin-codex-expand :codex "codex")
+    (fset 'in-codex-expand Sin-codex-expand))
 
   (put 'codex :obarray codex-obarray))
-
-;; (defun codex--dump-codex-debug (codname forms)
-;;   (mapcar (lambda (form)
-;;             (cond ((null form) nil)
-;;                   ((symbolp form)
-;;                    (make-symbol (concat
-;;                                  (or (get form :codex) "*global*")
-;;                                  ":"
-;;                                  (symbol-name form))))
-;;                   ((listp form)
-;;                    (codex--dump-codex-debug codname form))
-;;                   (t form)))
-;;           (codex-in-codex codname forms)))
-
-;; (defmacro in-codex--debug (codname &rest body)
-;;   (declare (indent 1))
-;;   (list 'quote
-;;         (cons 'progn
-;;               (codex--dump-codex-debug codname body))))
 
 (provide 'codex)
 
