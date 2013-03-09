@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/sigma/codex.png?branch=master)](https://travis-ci.org/sigma/codex)
+
 WARNING: don't even think about asking for support :)
 This is just a POC, and is not meant to be actually used in the current state.
 
