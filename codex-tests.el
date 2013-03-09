@@ -26,6 +26,7 @@
 
 ;;; Code:
 
+(require 'codex)
 (require 'ert)
 
 (ert-deftest codex-codex-exists ()
@@ -36,7 +37,7 @@
   (should
    (assoc "emacs" (in-codex codex codex-alist))))
 
-(ert-deftest codex-codex-exists2 ()
+(ert-deftest codex-codex-exists-in-codex ()
   (should
    (in-codex codex
      (emacs:assoc "codex" codex-alist))))
