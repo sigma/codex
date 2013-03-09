@@ -34,7 +34,7 @@
         (Sstruct-used (intern "struct-used" codex-obarray))
         (Sstruct-symbols (intern "struct-symbols" codex-obarray))
         (Sstruct-export (intern "struct-export" codex-obarray))
-        (Sstructs (intern "structs" codex-obarray))
+        (Scodex-alist (intern "codex-alist" codex-obarray))
         (Sstring-id (intern "string-id" codex-obarray))
         (Sby-name (intern "by-name" codex-obarray))
         (Sdefine (intern "define" codex-obarray))
@@ -75,8 +75,8 @@
     (put Sstruct-export :codex "codex")
 
     ;; variable to hold the set of defined codices
-    (set Sstructs nil)
-    (put Sstructs :codex "codex")
+    (set Scodex-alist nil)
+    (put Scodex-alist :codex "codex")
 
     (fset Sstring-id
           (lambda (name)
@@ -87,7 +87,7 @@
     (fset Sby-name
           `(lambda (name)
              (let ((name (,Sstring-id name)))
-               (cdr (assoc name ,Sstructs)))))
+               (cdr (assoc name ,Scodex-alist)))))
     (put Sby-name :codex "codex")
 
     (fset Sdefine
@@ -101,10 +101,10 @@
                                 ob
                                 (make-vector 17 nil))
                             (mapcar ',Sstring-id export))))
-               (let ((cod (assoc name ,Sstructs)))
+               (let ((cod (assoc name ,Scodex-alist)))
                  (if cod
                      (setcdr cod codex)
-                   (push (cons name codex) ,Sstructs))
+                   (push (cons name codex) ,Scodex-alist))
                  codex))))
     (put Sdefine :codex "codex")
 
@@ -113,7 +113,7 @@
              (and deps
                   (or
                    (let* ((dep (car deps))
-                          (cod (cdr (assoc dep ,Sstructs))))
+                          (cod (cdr (assoc dep ,Scodex-alist))))
                      (and cod
                           (member name
                                   (,Sstruct-export cod))
@@ -144,11 +144,11 @@
                (cond ((string-match-p "^:.*" name)
                       sym)
                      ((and (string-match "^\\(.*\\):\\(.*\\)" name)
-                           (assoc (match-string 1 name) ,Sstructs)
+                           (assoc (match-string 1 name) ,Scodex-alist)
                            (,Sfind-symbol
                             (match-string 2 name)
                             (cdr (assoc (match-string 1 name)
-                                        ,Sstructs)))))
+                                        ,Scodex-alist)))))
                      (t (,Sintern name default-codex))))))
     (put Sresolve-symbol :codex "codex")
 
