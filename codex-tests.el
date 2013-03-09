@@ -29,6 +29,8 @@
 (require 'codex)
 (require 'ert)
 
+(defcodex codex-tests (:use ert codex))
+
 (ert-deftest codex-codex-exists ()
   (should
    (assoc "codex" (in-codex codex codex-alist))))
@@ -40,7 +42,13 @@
 (ert-deftest codex-codex-exists-in-codex ()
   (should
    (in-codex codex
-     (emacs:assoc "codex" codex-alist))))
+     (codexp "codex"))))
+
+(in-codex codex-tests
+  ;; due to an ert limitation, the test symbols need to be in emacs codex
+  (deftest emacs:codex-ert-codex ()
+    (should
+     (codexp "codex"))))
 
 (provide 'codex-tests)
 ;;; codex-tests.el ends here
