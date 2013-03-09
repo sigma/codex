@@ -52,7 +52,14 @@
 
   (deftest codex-ert-codex ()
     (should
-     (codexp "codex"))))
+     (codexp "codex")))
+
+  (deftest codex-private-func ()
+    (emacs:with-no-warnings
+      (emacs:defun plop () 42)
+      (should (emacs:equal (plop) 42))
+      (should-error
+       (emacs:plop)))))
 
 (provide 'codex-tests)
 ;;; codex-tests.el ends here
