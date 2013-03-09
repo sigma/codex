@@ -38,6 +38,7 @@
           (Scodex-alist (intern "codex-alist" codex-obarray))
           (Sstring-id (intern "string-id" codex-obarray))
           (Sby-name (intern "by-name" codex-obarray))
+          (Scodexp (intern "codexp" codex-obarray))
           (Sdefine (intern "define" codex-obarray))
           (Sfind-symbol-deps (intern "find-symbol-deps" codex-obarray))
           (Sfind-symbol (intern "find-symbol" codex-obarray))
@@ -90,6 +91,11 @@
                (let ((name (,Sstring-id name)))
                  (cdr (assoc name ,Scodex-alist)))))
       (put Sby-name :codex "codex")
+
+      (fset Scodexp
+            `(lambda (name)
+               (and (,Sby-name name) t)))
+      (put Scodexp :codex "codex")
 
       (fset Sdefine
             `(lambda (name specs &optional ob)
