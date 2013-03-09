@@ -166,7 +166,7 @@
                         sym)
                        ((and (string-match "^\\(.*\\):\\(.*\\)" name)
                              (assoc (match-string 1 name) ,Scodex-alist)
-                             (,Sfind-symbol
+                             (,Sintern
                               (match-string 2 name)
                               (cdr (assoc (match-string 1 name)
                                           ,Scodex-alist)))))
