@@ -206,22 +206,6 @@
                                (t form)))
                        (,Sin-codex-func codname forms))))
 
-      ;; create "codex" codex
-      (funcall Sdefine "codex" '((:export "defcodex" "in-codex"))
-               codex-obarray)
-
-      ;; create "emacs" codex
-      (funcall Sdefine "emacs"
-               (list
-                (cons :export
-                      (let ((subrs nil))
-                        (mapatoms (lambda (s)
-                                    (when (and (fboundp s)
-                                               (subrp (symbol-function s)))
-                                      (setq subrs (cons (symbol-name s) subrs)))))
-                        subrs)))
-               t)
-
       (defmacro defcodex (name &rest specs)
         (declare (indent 1))
         (let ((name (funcall (intern "string-id" (get 'codex :obarray)) name)))
@@ -251,51 +235,33 @@
 
       (fset Sin-codex-expand (symbol-function 'in-codex-expand))
       (put Sin-codex-expand :codex "codex")
-      (fset 'in-codex-expand Sin-codex-expand))
+      (fset 'in-codex-expand Sin-codex-expand)
+
+      ;; create "codex" codex
+      (funcall Sdefine "codex" '((:export "defcodex" "in-codex" "codexp"))
+               codex-obarray)
+
+      ;; create "emacs" codex
+      (funcall Sdefine "emacs"
+               (list
+                (cons :export
+                      (let ((subrs nil))
+                        (mapatoms (lambda (s)
+                                    (when (and (fboundp s)
+                                               (subrp (symbol-function s)))
+                                      (setq subrs (cons (symbol-name s) subrs)))))
+                        subrs)))
+               t))
 
     (put 'codex :obarray codex-obarray)))
 
 (provide 'codex)
 
-;; (eval-and-compile
-;;   (require 'ert)
-
-;;   (in-codex codex
-;;     (define-native "ert" ))
-
-;;   (defcodex ert (:export "deftest" "should" "should-error"))
-
-;;   (in-codex ert
-;;     (emacs:progn
-;;      (emacs:fset (emacs:quote ert:deftest) (emacs:quote emacs:ert-deftest))
-;;      (emacs:fset (emacs:quote ert:should) (emacs:quote emacs:should))
-;;      (emacs:fset (emacs:quote ert:should-error) (emacs:quote emacs:should-error))
-;;      ))
-;;   )
-
-
-;; (defcodex test
-;;   (:use emacs)
-;;   (:export "plop"))
-
-;; (in-codex test
-;;   (defun plop () 42))
-
-;; (defcodex test2)
-
-;; (in-codex test2
-;;   (emacs:defun plop () 0))
-
-;; (in-codex test
-;;   (plop))
-
-;; (in-codex test2
-;;   (plop))
-
-;; (defcodex test3
-;;   (:use test))
-
-;; (in-codex test3
-;;   (plop))
-
-;;; codex.el ends here
+(eval-after-load 'codex
+  '(progn
+     (require 'ert)
+     (let ((ert (defcodex ert (:export "deftest" "should" "should-error"))))
+       (in-codex emacs
+         (codex:intern-symbol 'ert-deftest ert "deftest")
+         (codex:intern-symbol 'should ert)
+         (codex:intern-symbol 'should-error ert)))))
