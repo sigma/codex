@@ -225,7 +225,8 @@
       (defmacro defcodex (name &rest specs)
         (declare (indent 1))
         (let ((name (funcall (intern "string-id" (get 'codex :obarray)) name)))
-          `(funcall (intern "define" (get 'codex :obarray)) ,name ',specs)))
+          `(eval-and-compile
+             (funcall (intern "define" (get 'codex :obarray)) ,name ',specs))))
 
       (fset Sdefcodex (symbol-function 'defcodex))
       (put Sdefcodex :codex "codex")
