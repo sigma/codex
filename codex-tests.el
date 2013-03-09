@@ -31,26 +31,26 @@
 
 (defcodex codex-tests (:use ert codex))
 
-(ert-deftest codex-codex-exists ()
-  (should
-   (assoc "codex" (in-codex codex codex-alist))))
-
-(ert-deftest codex-emacs-exists ()
-  (should
-   (assoc "emacs" (in-codex codex codex-alist))))
-
-(ert-deftest codex-ert-exists ()
-  (should
-   (assoc "ert" (in-codex codex codex-alist))))
-
-(ert-deftest codex-codex-exists-in-codex ()
-  (should
-   (in-codex codex
-     (codexp "codex"))))
-
 (in-codex codex-tests
-  ;; due to an ert limitation, the test symbols need to be in emacs codex
-  (deftest emacs:codex-ert-codex ()
+
+  (deftest codex-codex-exists ()
+    (should
+     (emacs:assoc "codex" (in-codex codex codex-alist))))
+
+  (deftest codex-emacs-exists ()
+    (should
+     (emacs:assoc "emacs" (in-codex codex codex-alist))))
+
+  (deftest codex-ert-exists ()
+    (should
+     (emacs:assoc "ert" (in-codex codex codex-alist))))
+
+  (deftest codex-codex-exists-in-codex ()
+    (should
+     (in-codex codex
+       (codexp "codex"))))
+
+  (deftest codex-ert-codex ()
     (should
      (codexp "codex"))))
 
