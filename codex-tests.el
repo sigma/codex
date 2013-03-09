@@ -39,6 +39,10 @@
   (should
    (assoc "emacs" (in-codex codex codex-alist))))
 
+(ert-deftest codex-ert-exists ()
+  (should
+   (assoc "ert" (in-codex codex codex-alist))))
+
 (ert-deftest codex-codex-exists-in-codex ()
   (should
    (in-codex codex
