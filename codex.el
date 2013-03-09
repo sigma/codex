@@ -43,6 +43,7 @@
           (Sfind-symbol-deps (intern "find-symbol-deps" codex-obarray))
           (Sfind-symbol (intern "find-symbol" codex-obarray))
           (Sintern (intern "intern" codex-obarray))
+          (Sintern-symbol (intern "intern-symbol" codex-obarray))
           (Sresolve-symbol (intern "resolve-symbol" codex-obarray))
           (Sin-codex-func (intern "in-codex-func" codex-obarray))
           (Sdefcodex (intern "defcodex" codex-obarray))
@@ -144,6 +145,19 @@
                      (put sym :codex (,Sstruct-name cod))
                      sym))))
       (put Sintern :codex "codex")
+
+      (fset Sintern-symbol
+            `(lambda (sym cod &optional new-name)
+               (let ((new-sym (intern (or new-name
+                                          (symbol-name sym))
+                                      (,Sstruct-symbols cod))))
+                 (put new-sym :codex (,Sstruct-name cod))
+                 (when (fboundp sym)
+                   (fset new-sym sym))
+                 (when (boundp sym)
+                   (set new-sym sym))
+                 sym)))
+      (put Sintern-symbol :codex "codex")
 
       (fset Sresolve-symbol
             `(lambda (sym default-codex)
