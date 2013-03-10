@@ -253,7 +253,9 @@
                         subrs)))
                t))
 
-    (put 'codex :obarray codex-obarray)))
+    (put 'codex :obarray codex-obarray))
+
+  nil)
 
 (provide 'codex)
 
