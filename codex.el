@@ -259,12 +259,10 @@
 
 (provide 'codex)
 
-(eval-after-load 'codex
-  '(progn
-     (eval-after-load 'ert
-       '(let ((ert (defcodex ert (:export "deftest" "should" "should-error"))))
-          (in-codex emacs
-            (codex:intern-symbol 'ert-deftest ert "deftest")
-            (codex:intern-symbol 'should ert)
-            (codex:intern-symbol 'should-error ert)
-            (codex:intern-symbol 'ert-run-tests-batch-and-exit ert))))))
+(eval-after-load 'ert
+  '(let ((ert (defcodex ert (:export "deftest" "should" "should-error"))))
+     (in-codex emacs
+       (codex:intern-symbol 'ert-deftest ert "deftest")
+       (codex:intern-symbol 'should ert)
+       (codex:intern-symbol 'should-error ert)
+       (codex:intern-symbol 'ert-run-tests-batch-and-exit ert))))
