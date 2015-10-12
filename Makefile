@@ -18,4 +18,4 @@ clean:
 
 test: all
 #	$(BATCH) -l $(PROJECT)-tests.el -f ert-run-tests-batch-and-exit
-	$(BATCH) -l $(PROJECT)-tests.el --eval "(in-codex codex-tests (ert:ert-run-tests-batch-and-exit))"
+	$(BATCH) -l lib/ert.el -l $(PROJECT)-tests.el --eval "(in-codex codex-tests (ert:run-tests-batch-and-exit))"

@@ -265,4 +265,4 @@
        (codex:intern-symbol 'ert-deftest ert "deftest")
        (codex:intern-symbol 'should ert)
        (codex:intern-symbol 'should-error ert)
-       (codex:intern-symbol 'ert-run-tests-batch-and-exit ert))))
+       (codex:intern-symbol 'ert-run-tests-batch-and-exit ert "run-tests-batch-and-exit"))))
