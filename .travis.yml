@@ -17,4 +17,4 @@ script:
   make test
 notifications:
   slack:
-    secure: M2ZIpMSC3gfknh+FkJ4r09RWbiFLXwHy2ZoIVcRVQL800kvZ+2oTOy1HtD8KDgPQ2LLupJeTNt6BjR9HQLzBJf+1tVG6V5i9sWAIJ4lhGJofeCNIt67yth7jfJk/uEk8NMJrmJbLHptBEh0qMroRwMP9vWaTLzDYYMYUzWI1KHc=
+    secure: YxJhJnJMVZzDruAqOigEvL10XRD/ghYdsIjzXX3InrrW3JgYKVxb1no/5TkRcM9B1oWctH5ZkRST9wdaMKo9gnRWVaJBhtxazg/QEKv+n7kTSMtrtGAO71KZ2jFuNhn22hryJCNJB5laWBCzNxNelWEgS0Q7+HnuRED1GTcairM=
