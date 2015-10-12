@@ -33,28 +33,28 @@
 
 (in-codex codex-tests
 
-  (deftest codex-codex-exists ()
+  (deftest codex-exists ()
     (should
      (emacs:assoc "codex" (in-codex codex codex-alist))))
 
-  (deftest codex-emacs-exists ()
+  (deftest emacs-exists ()
     (should
      (emacs:assoc "emacs" (in-codex codex codex-alist))))
 
-  (deftest codex-ert-exists ()
+  (deftest ert-exists ()
     (should
      (emacs:assoc "ert" (in-codex codex codex-alist))))
 
-  (deftest codex-codex-exists-in-codex ()
+  (deftest codex-exists-in-codex ()
     (should
      (in-codex codex
        (codexp "codex"))))
 
-  (deftest codex-ert-codex ()
+  (deftest ert-codex ()
     (should
      (codexp "codex")))
 
-  (deftest codex-private-func ()
+  (deftest private-func ()
     (emacs:with-no-warnings
       (emacs:defun plop () 42)
       (should (emacs:equal (plop) 42))

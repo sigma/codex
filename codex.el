@@ -218,10 +218,10 @@
 
       (defmacro in-codex (codname &rest body)
         (declare (indent 1))
-        `(let ((obarray (funcall (intern "struct-symbols" (get 'codex :obarray))
-                                 ,(funcall (intern "by-name" (get 'codex :obarray))
-                                           codname))))
-           ,@(funcall (intern "in-codex-func" (get 'codex :obarray)) codname body)))
+        `(eval `(let ((obarray (funcall (intern "struct-symbols" (get 'codex :obarray))
+                                        (funcall (intern "by-name" (get 'codex :obarray))
+                                                 ',',codname))))
+                  ,@(funcall (intern "in-codex-func" (get 'codex :obarray)) ',codname ',body))))
 
       (fset Sin-codex (symbol-function 'in-codex))
       (put Sin-codex :codex "codex")
