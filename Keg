@@ -1,0 +1,7 @@
+;; Keg
+
+(source gnu melpa)
+
+(package
+  (codex
+   (recipe . (codex :fetcher github :repo "sigma/codex"))))

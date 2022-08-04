@@ -1,21 +1,12 @@
-PROJECT=codex
-EMACS=emacs
+EMACS ?= emacs
 
-ELS=$(wildcard *.el)
-ELCS=$(ELS:.el=.elc)
+.PHONY: build test clean
 
-EFLAGS=
-BATCH=$(EMACS) $(EFLAGS) -batch -q -no-site-file -eval \
-  "(setq load-path (cons (expand-file-name \".\") load-path))"
+build:
+	keg build
 
-%.elc: %.el
-	$(BATCH) --eval '(byte-compile-file "$<")'
-
-all: $(ELCS)
+test:
+	keg exec $(EMACS) --batch -l codex-tests.el --eval "(in-codex codex-tests (ert:run-tests-batch-and-exit))"
 
 clean:
-	rm -f $(ELCS)
-
-test: all
-#	$(BATCH) -l $(PROJECT)-tests.el -f ert-run-tests-batch-and-exit
-	$(BATCH) -l lib/ert.el -l $(PROJECT)-tests.el --eval "(in-codex codex-tests (ert:run-tests-batch-and-exit))"
+	keg clean
